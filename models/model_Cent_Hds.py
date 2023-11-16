@@ -486,8 +486,6 @@ class Coh_Model_Cent_Hds(models.model_base.BaseModel):
         adj_mat = utils.cast_type(adj_mat, FLOAT, self.use_gpu)
         batch_cp_ind = batch_cp_ind.tolist()
 
-        print(f"Adj mat: {adj_mat}")
-
         return  adj_mat, avg_sents_repr, batch_adj_list, batch_root_list, batch_segMap, batch_cp_ind
 
 #### Forward function
