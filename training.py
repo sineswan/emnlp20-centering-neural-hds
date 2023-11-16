@@ -366,6 +366,7 @@ def train(model, optimizer, scheduler, dataset_train, dataset_valid, dataset_tes
             cp_log_name = "log_cp_" + config.corpus_target.lower() + "_" + str(config.essay_prompt_id_train) + ".log"
             col = ["tid", "doc_cp_seq"]
             with open(os.path.join(config.session_dir, cp_log_name), "w") as log_file:
+                print(f"session_log file: {os.path.join(config.session_dir, cp_log_name)}")
                 writer = csv.DictWriter(log_file, fieldnames=col)
                 for i in range(len(cp_seq_list)):
                     writer.writerow({'tid': tid_list[i], 'doc_cp_seq': cp_seq_list[i]})
