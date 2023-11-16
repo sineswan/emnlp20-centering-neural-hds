@@ -178,8 +178,8 @@ def train(model, optimizer, scheduler, dataset_train, dataset_valid, dataset_tes
     final_eval_best = 0.0
     final_valid = 0.0  # valid performance when the model achieves the best eval on the test set
 
-    sampler_train = RandomSampler(dataset_train) if config.local_rank == -1 else DistributedSampler(dataset_train)
-    # sampler_train = SequentialSampler(dataset_train) if config.local_rank == -1 else DistributedSampler(dataset_train)  # for debugging
+    # sampler_train = RandomSampler(dataset_train) if config.local_rank == -1 else DistributedSampler(dataset_train)
+    sampler_train = SequentialSampler(dataset_train) if config.local_rank == -1 else DistributedSampler(dataset_train)  # for debugging
     dataloader_train = DataLoader(dataset_train, sampler=sampler_train, batch_size=config.batch_size)
 
     batch_cnt = 0
@@ -281,81 +281,81 @@ def train(model, optimizer, scheduler, dataset_train, dataset_valid, dataset_tes
 
                 cp_seq_list = update_cp_seq(len_seq, len_sents, config, model_outputs[4], text_inputs, cp_seq_list)
 
-            ##########
-            ## validation
-            if batch_cnt % ckpt_step == 0:  # manual epoch printing
-                model.eval()
-                logger.info("\n=== Evaluating Model ===")
-
-                # validation
-                eval_cur_valid = -1
-                if dataset_valid is not None and is_valid_sens:
-                    loss_valid, eval_cur_valid, _, valid_itpt = validate(model, evaluator, dataset_valid, config, loss_func, is_test=False)
-                    logger.info("")
-
-                if eval_cur_valid >= best_eval_valid or dataset_valid is None:
-                    logger.info("Best {} on Valid {}".format(evaluator.eval_type, eval_cur_valid))
-                    best_eval_valid = eval_cur_valid
-
-                    valid_loss, eval_last, eval_best, valid_itpt = validate(model, evaluator, dataset_test, config, loss_func, is_test=True)
-
-                    if config.target_model.lower() == "cent_attn":
-                        tid_list = tid_list + valid_itpt[0]
-                        label_list = label_list + valid_itpt[1]
-                        adj_list = adj_list + valid_itpt[2]
-                        root_ds_list = root_ds_list + valid_itpt[3]
-                        seg_map_list = seg_map_list + valid_itpt[4]
-                        
-
-                        cp_seq_list = cp_seq_list + valid_itpt[5]
-
-                    if eval_best > final_eval_best: 
-                        final_eval_best = eval_best
-
-                        final_valid = eval_cur_valid
-
-                        # save model
-                        if config.save_model:
-                            logger.info("Model Saved.")
-                            torch.save(model.state_dict(), os.path.join(config.session_dir, "model"))
-
-                        # save prediction log for error analysis
-
-                        if config.gen_logs:
-                            # log for prediction label
-                            pred_log_name = "log_pred_" + str(config.essay_prompt_id_train) + "_" + str(config.essay_prompt_id_test) + "_" + str(config.cur_fold) + ".log"
-                            if config.eval_type.lower() == "qwk":
-                              pred_out = np.stack((evaluator.rescaled_pred, evaluator.origin_label_np, evaluator.tid_np))
-                              np.savetxt(os.path.join(config.session_dir, pred_log_name), pred_out, fmt ='%.0f')
-                            elif config.eval_type.lower() == "accuracy":
-                              pred_out = np.stack((evaluator.pred_list_np, evaluator.origin_label_np, evaluator.tid_np))
-                              pred_out = pred_out.T
-                              np.savetxt(os.path.join(config.session_dir, pred_log_name), pred_out, fmt ='%.0f')
-
-                            # log for structure
-                            if config.target_model.lower() == "cent_attn":
-                                stru_log_name = "log_stru_" + config.corpus_target.lower() + "_" + str(config.essay_prompt_id_train) + "_" + str(config.cur_fold) + ".log"
-                                col = ["tid", "label", "adj", "root", "seg_map"]
-                                tid_list = tid_list + valid_itpt[0]
-                                label_list = label_list + valid_itpt[1]
-                                adj_list = adj_list + valid_itpt[2]
-                                root_ds_list = root_ds_list + valid_itpt[3]
-                                seg_map_list = seg_map_list + valid_itpt[4]
-
-                                cp_seq_list = cp_seq_list + valid_itpt[5]
-
-                                # print(len(adj_list))
-                                with open(os.path.join(config.session_dir, stru_log_name), "w") as log_file:
-                                    writer = csv.DictWriter(log_file, fieldnames=col)
-                                    for i in range(len(adj_list)):
-                                        writer.writerow({'tid': tid_list[i], 'label': label_list[i], 'adj': adj_list[i], 'root': root_ds_list[i], 'seg_map':seg_map_list[i]})
-                                    
-                evaluator.map_suppl={}  # reset
-
-                # exit eval model
-                model.train()
-                logger.info("\n**** Epoch {}/{} ****".format(cur_epoch, config.max_epoch))
-            # end valdation
+            # ##########
+            # ## validation
+            # if batch_cnt % ckpt_step == 0:  # manual epoch printing
+            #     model.eval()
+            #     logger.info("\n=== Evaluating Model ===")
+            #
+            #     # validation
+            #     eval_cur_valid = -1
+            #     if dataset_valid is not None and is_valid_sens:
+            #         loss_valid, eval_cur_valid, _, valid_itpt = validate(model, evaluator, dataset_valid, config, loss_func, is_test=False)
+            #         logger.info("")
+            #
+            #     if eval_cur_valid >= best_eval_valid or dataset_valid is None:
+            #         logger.info("Best {} on Valid {}".format(evaluator.eval_type, eval_cur_valid))
+            #         best_eval_valid = eval_cur_valid
+            #
+            #         valid_loss, eval_last, eval_best, valid_itpt = validate(model, evaluator, dataset_test, config, loss_func, is_test=True)
+            #
+            #         if config.target_model.lower() == "cent_attn":
+            #             tid_list = tid_list + valid_itpt[0]
+            #             label_list = label_list + valid_itpt[1]
+            #             adj_list = adj_list + valid_itpt[2]
+            #             root_ds_list = root_ds_list + valid_itpt[3]
+            #             seg_map_list = seg_map_list + valid_itpt[4]
+            #
+            #
+            #             cp_seq_list = cp_seq_list + valid_itpt[5]
+            #
+            #         if eval_best > final_eval_best:
+            #             final_eval_best = eval_best
+            #
+            #             final_valid = eval_cur_valid
+            #
+            #             # save model
+            #             if config.save_model:
+            #                 logger.info("Model Saved.")
+            #                 torch.save(model.state_dict(), os.path.join(config.session_dir, "model"))
+            #
+            #             # save prediction log for error analysis
+            #
+            #             if config.gen_logs:
+            #                 # log for prediction label
+            #                 pred_log_name = "log_pred_" + str(config.essay_prompt_id_train) + "_" + str(config.essay_prompt_id_test) + "_" + str(config.cur_fold) + ".log"
+            #                 if config.eval_type.lower() == "qwk":
+            #                   pred_out = np.stack((evaluator.rescaled_pred, evaluator.origin_label_np, evaluator.tid_np))
+            #                   np.savetxt(os.path.join(config.session_dir, pred_log_name), pred_out, fmt ='%.0f')
+            #                 elif config.eval_type.lower() == "accuracy":
+            #                   pred_out = np.stack((evaluator.pred_list_np, evaluator.origin_label_np, evaluator.tid_np))
+            #                   pred_out = pred_out.T
+            #                   np.savetxt(os.path.join(config.session_dir, pred_log_name), pred_out, fmt ='%.0f')
+            #
+            #                 # log for structure
+            #                 if config.target_model.lower() == "cent_attn":
+            #                     stru_log_name = "log_stru_" + config.corpus_target.lower() + "_" + str(config.essay_prompt_id_train) + "_" + str(config.cur_fold) + ".log"
+            #                     col = ["tid", "label", "adj", "root", "seg_map"]
+            #                     tid_list = tid_list + valid_itpt[0]
+            #                     label_list = label_list + valid_itpt[1]
+            #                     adj_list = adj_list + valid_itpt[2]
+            #                     root_ds_list = root_ds_list + valid_itpt[3]
+            #                     seg_map_list = seg_map_list + valid_itpt[4]
+            #
+            #                     cp_seq_list = cp_seq_list + valid_itpt[5]
+            #
+            #                     # print(len(adj_list))
+            #                     with open(os.path.join(config.session_dir, stru_log_name), "w") as log_file:
+            #                         writer = csv.DictWriter(log_file, fieldnames=col)
+            #                         for i in range(len(adj_list)):
+            #                             writer.writerow({'tid': tid_list[i], 'label': label_list[i], 'adj': adj_list[i], 'root': root_ds_list[i], 'seg_map':seg_map_list[i]})
+            #
+            #     evaluator.map_suppl={}  # reset
+            #
+            #     # exit eval model
+            #     model.train()
+            #     logger.info("\n**** Epoch {}/{} ****".format(cur_epoch, config.max_epoch))
+            # # end valdation
 
             if config.use_gpu and config.empty_cache:
                 torch.cuda.empty_cache()    # due to memory shortage
