@@ -269,7 +269,7 @@ def train(model, optimizer, scheduler, dataset_train, dataset_valid, dataset_tes
 #                 logger.info("{}/{}-({:.3f})".format(batch_cnt % config.ckpt_step, config.ckpt_step, loss))
 
             ## log handling
-            if config.gen_logs and config.target_model.lower() == "cent_attn":
+            if config.gen_logs :  #and config.target_model.lower() == "cent_attn":
                 tid_list = tid_list + tid.flatten().tolist()
                 label_list = label_list + label_y.flatten().tolist()
                 
@@ -362,7 +362,7 @@ def train(model, optimizer, scheduler, dataset_train, dataset_valid, dataset_tes
         # end batch loop
 
         ## convert Cp indexes in sentences to sequence number
-        if config.gen_logs and config.target_model.lower() == "cent_attn":
+        if config.gen_logs: # and config.target_model.lower() == "cent_attn":
             cp_log_name = "log_cp_" + config.corpus_target.lower() + "_" + str(config.essay_prompt_id_train) + ".log"
             col = ["tid", "doc_cp_seq"]
             with open(os.path.join(config.session_dir, cp_log_name), "w") as log_file:
