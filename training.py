@@ -376,6 +376,9 @@ def train(model, optimizer, scheduler, dataset_train, dataset_valid, dataset_tes
     logger.info("Best {} on Test {}".format(evaluator.eval_type, final_eval_best))
     logger.info("")
 
+    print(f"gen_logs: {config.gen_logs}")
+
+
     return final_eval_best, final_valid
 # end train
 
