@@ -232,41 +232,41 @@ def train(model, optimizer, scheduler, dataset_train, dataset_valid, dataset_tes
             
             # coh_score = model(text_inputs=text_inputs, mask_input=mask_input, len_seq=len_seq, len_sents=len_sents, tid=tid, mode="") 
             model_outputs = model(text_inputs=text_inputs, mask_input=mask_input, len_seq=len_seq, len_sents=len_sents, tid=tid, mode="") 
-            coh_score = model_outputs[0]
-            
-            if config.output_size == 1:
-                coh_score = coh_score.view(text_inputs.shape[0])
-            else:
-                coh_score = coh_score.view(text_inputs.shape[0], -1)
-
-#           # get loss
-            if config.output_size == 1:
-                label_y = utils.cast_type(label_y, FLOAT, config.use_gpu)
-            else:
-                label_y = utils.cast_type(label_y, LONG, config.use_gpu)
-            label_y = label_y.view(text_inputs.shape[0])
-
-            loss = loss_func(coh_score, label_y)
-            if config.n_gpu > 1:
-                loss = loss.mean()  # mean() to average on multi-gpu parallel (not distributed) training
-
-            loss.backward()
-            # with amp_handle.scale_loss(loss, optimizer) as scaled_loss:
-            #     scaled_loss.backward()
-            
-            if config.max_grad_norm > 0:
-                torch.nn.utils.clip_grad_norm_(model.parameters(), config.max_grad_norm)
-
-            # update optimizer and scheduler
-            optimizer.step()
-            if scheduler is not None:
-                # scheduler.step()
-                scheduler.step(loss)
-            batch_cnt = batch_cnt + 1
-
-            # print train process
-            if batch_cnt % config.print_step == 0:
-                logger.info("{}/{}-({:.3f})".format(batch_cnt % config.ckpt_step, config.ckpt_step, loss))
+#             coh_score = model_outputs[0]
+#
+#             if config.output_size == 1:
+#                 coh_score = coh_score.view(text_inputs.shape[0])
+#             else:
+#                 coh_score = coh_score.view(text_inputs.shape[0], -1)
+#
+# #           # get loss
+#             if config.output_size == 1:
+#                 label_y = utils.cast_type(label_y, FLOAT, config.use_gpu)
+#             else:
+#                 label_y = utils.cast_type(label_y, LONG, config.use_gpu)
+#             label_y = label_y.view(text_inputs.shape[0])
+#
+#             loss = loss_func(coh_score, label_y)
+#             if config.n_gpu > 1:
+#                 loss = loss.mean()  # mean() to average on multi-gpu parallel (not distributed) training
+#
+#             loss.backward()
+#             # with amp_handle.scale_loss(loss, optimizer) as scaled_loss:
+#             #     scaled_loss.backward()
+#
+#             if config.max_grad_norm > 0:
+#                 torch.nn.utils.clip_grad_norm_(model.parameters(), config.max_grad_norm)
+#
+#             # update optimizer and scheduler
+#             optimizer.step()
+#             if scheduler is not None:
+#                 # scheduler.step()
+#                 scheduler.step(loss)
+#             batch_cnt = batch_cnt + 1
+#
+#             # print train process
+#             if batch_cnt % config.print_step == 0:
+#                 logger.info("{}/{}-({:.3f})".format(batch_cnt % config.ckpt_step, config.ckpt_step, loss))
 
             ## log handling
             if config.gen_logs and config.target_model.lower() == "cent_attn":

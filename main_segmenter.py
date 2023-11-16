@@ -213,14 +213,14 @@ def exp_model(config):
     # training and evaluating
 
     final_eval_best, final_valid = 0,0
-    # final_eval_best, final_valid = training.train(model,
-    #                     optimizer,
-    #                     scheduler,
-    #                     dataset_train=dataset_train,
-    #                     dataset_valid=dataset_valid,
-    #                     dataset_test=dataset_test,
-    #                     config=config,
-    #                     evaluator=evaluator)
+    final_eval_best, final_valid = training.train(model,
+                        optimizer,
+                        scheduler,
+                        dataset_train=dataset_train,
+                        dataset_valid=dataset_valid,
+                        dataset_test=dataset_test,
+                        config=config,
+                        evaluator=evaluator)
 
 
     return final_eval_best, final_valid
