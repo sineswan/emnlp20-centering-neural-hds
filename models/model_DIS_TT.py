@@ -38,7 +38,7 @@ from utils import FLOAT, LONG, BOOL
 
 import torch.nn.utils.weight_norm as weightNorm
 
-import fairseq.modules as fairseq
+# import fairseq.modules as fairseq
 
 from models.transformer.encoder import TransformerInterEncoder
 

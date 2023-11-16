@@ -34,13 +34,13 @@ import training
 from evaluators import eval_acc, eval_qwk, eval_fscore
 
 
-from models.model_CoNLL17_Essay import Model_CoNLL17_Essay
-from models.model_EMNLP18_Centt import Model_EMNLP18_Centt
-
-from models.model_Latent_Doc_Stru import Model_Latent_Doc_Stru
-
-from models.model_DIS_Avg import Model_DIS_Avg
-from models.model_DIS_TT import Model_DIS_TT
+# from models.model_CoNLL17_Essay import Model_CoNLL17_Essay
+# from models.model_EMNLP18_Centt import Model_EMNLP18_Centt
+#
+# from models.model_Latent_Doc_Stru import Model_Latent_Doc_Stru
+#
+# from models.model_DIS_Avg import Model_DIS_Avg
+# from models.model_DIS_TT import Model_DIS_TT
 from models.model_Cent_Hds import Coh_Model_Cent_Hds
 
 from torch.utils.data import Dataset, DataLoader, RandomSampler
