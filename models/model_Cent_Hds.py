@@ -463,6 +463,8 @@ class Coh_Model_Cent_Hds(models.model_base.BaseModel):
             ## Parser stage3-1: get structural information
             seg_map, adj_list, list_root_ds = self.get_disco_seg(cur_sent_num, ind_batch, fwrd_repr, cur_batch_repr)
 
+            print(f"seg_map: {seg_map}")
+
             ## Parser stage3-2: make a tree structure using the information
             cur_tree = self.make_tree_stru(seg_map, adj_list, list_root_ds)
 
@@ -470,6 +472,7 @@ class Coh_Model_Cent_Hds(models.model_base.BaseModel):
             cur_adj_mat = np.zeros((self.max_num_sents, self.max_num_sents))
             undir_tree = cur_tree.to_undirected()  # we make an undirected tree
             np_adj_mat = nx.to_numpy_matrix(undir_tree)
+
 
             cur_adj_mat[:np_adj_mat.shape[0], :np_adj_mat.shape[1]]=np_adj_mat
 
@@ -502,6 +505,8 @@ class Coh_Model_Cent_Hds(models.model_base.BaseModel):
 
         #### Stage1 and 2: sentence repr and discourse segments parser
         adj_mat, sent_repr, batch_adj_list, batch_root_list, batch_segMap, batch_cp_ind = self.centering_attn(text_inputs, mask_input, len_sents, num_sents, tid)
+
+        # print(f"Adj_mat: {adj_mat}")
 
         # #### doc-level encoding input text (disable this part if GPU memory is not enough)
         # encoder_doc_out = self.base_encoder(text_inputs, mask_input, len_seq)

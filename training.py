@@ -311,7 +311,7 @@ def train(model, optimizer, scheduler, dataset_train, dataset_valid, dataset_tes
                 num_sents_list = num_sents_list + model_outputs[5]
 
                 cp_seq_list = update_cp_seq(len_seq, len_sents, config, model_outputs[4], text_inputs, cp_seq_list)
-                adjmat_seq_list = update_adjmat_seq(len_seq, len_sents, config, model_outputs[1], text_inputs, adjmat_seq_list)
+                # adjmat_seq_list = update_adjmat_seq(len_seq, len_sents, config, model_outputs[1], text_inputs, adjmat_seq_list)
 
             # ##########
             # ## validation
@@ -401,7 +401,7 @@ def train(model, optimizer, scheduler, dataset_train, dataset_valid, dataset_tes
                 print(f"session_log file: {os.path.join(config.session_dir, cp_log_name)}")
                 writer = csv.DictWriter(log_file, fieldnames=col)
                 for i in range(len(cp_seq_list)):
-                    writer.writerow({'tid': tid_list[i], 'doc_cp_seq': cp_seq_list[i], 'adj_mat': adjmat_seq_list[i]})
+                    writer.writerow({'tid': tid_list[i], 'doc_cp_seq': cp_seq_list[i]})
 
         # end if
 
