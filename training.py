@@ -168,36 +168,6 @@ def update_cp_seq(len_seq, len_sents, config, cur_cp_ind, text_inputs, cp_seq_li
 
     return cp_seq_list
 
-
-def update_adjmat_seq(len_seq, len_sents, config, adjmat, text_inputs, adjmat_seq_list):
-    sent_mask = torch.sign(len_sents)  # (batch_size, len_sent)
-    sent_mask = utils.cast_type(sent_mask, FLOAT, config.use_gpu)
-    num_sents = sent_mask.sum(dim=1)  # (batch_size)
-    for batch_ind, cur_doc_cp in enumerate(cur_cp_ind):
-        cur_doc_len = int(len_seq[batch_ind])
-        cur_sent_len = len_sents[batch_ind]
-        cur_sent_num = int(num_sents[batch_ind])  # (max_sent_num)
-        end_loc = 0
-        prev_loc = 0
-
-        cur_cp_seq = []
-        cur_text_seq = text_inputs[batch_ind]
-        for cur_sent_ind in range(cur_sent_num):
-            end_loc += int(cur_sent_len[cur_sent_ind])
-            cur_sent_seq = cur_text_seq[prev_loc:end_loc]  # get the current sentence seq from a doc
-
-            cur_sent_cp = cur_doc_cp[cur_sent_ind]
-            cur_cp_seq.append(int(cur_sent_seq[cur_sent_cp]))  # get seq id of Cp
-
-            prev_loc = end_loc
-        # end for
-        adjmat_seq_list.append(cur_cp_seq)
-
-    # end for
-
-    return adjmat_seq_list
-
-
 #
 def train(model, optimizer, scheduler, dataset_train, dataset_valid, dataset_test, config, evaluator):  # valid_feed can be None
 
@@ -246,7 +216,7 @@ def train(model, optimizer, scheduler, dataset_train, dataset_valid, dataset_tes
         num_sents_list = []
 
         cp_seq_list = []
-        adjmat_seq_list = []
+        data_seg_maps = []
 
         for text_inputs, label_y, *remains in dataloader_train:
             mask_input = remains[0]
@@ -395,13 +365,61 @@ def train(model, optimizer, scheduler, dataset_train, dataset_valid, dataset_tes
 
         ## convert Cp indexes in sentences to sequence number
         if config.gen_logs: # and config.target_model.lower() == "cent_attn":
+
+            print(f"Len segmaplist: {len(seg_map_list)}. len cp_seq_list: {len(cp_seq_list)}")
+            assert len(cp_seq_list)==len(seg_map_list)
+
             cp_log_name = "log_cp_" + config.corpus_target.lower() + "_" + str(config.essay_prompt_id_train) + ".log"
-            col = ["tid", "doc_cp_seq", "adj_mat"]
+            col = ["tid", "doc_cp_seq", "segments", "segmap", "adj_list"]
             with open(os.path.join(config.session_dir, cp_log_name), "w") as log_file:
                 print(f"session_log file: {os.path.join(config.session_dir, cp_log_name)}")
                 writer = csv.DictWriter(log_file, fieldnames=col)
                 for i in range(len(cp_seq_list)):
-                    writer.writerow({'tid': tid_list[i], 'doc_cp_seq': cp_seq_list[i]})
+
+                    #stephen-wan
+                    #merged_segments:
+                    merged_segments = {}
+                    seen_segments = []
+                    i_adj_list = adj_list[i]
+                    i_seg_map = {}
+                    for seg_id, seg_list in seg_map_list[i]: #of form: [ (id, [s_i, .., s_j]) ,  ... (...) ]
+                        i_seg_map[seg_id] = seg_list
+
+                    print(f"i:{i}, i_adj_list:{i_adj_list}, i_seg_map:{i_seg_map}")
+
+                    used_edge_ptrs = []
+                    for seg_id in sorted(i_seg_map.keys()): #each element in the list is a dict of segments for the data point(s)
+                        if seg_id in seen_segments:
+                            continue    #skip this segment as it's already been merged into an earlier one.
+
+                        #otherwise, we have not yet added this distinctiveness to our own.
+                        merged = i_seg_map[seg_id]
+                        seen_segments.append(seg_id)
+                        merged_seg_ids = [seg_id]
+                        i_adj_list_ptr = 0
+                        for left, right in i_adj_list:      #consider all edges
+                            if i_adj_list_ptr not in used_edge_ptrs:
+                                if (left in merged_seg_ids and not right in seen_segments):
+                                    #merge the right segment
+                                    merged.extend(i_seg_map[right])
+                                    merged_seg_ids.append(right)
+                                    seen_segments.append(right)
+                                    used_edge_ptrs.append(i_adj_list_ptr)        #used to ignore edge later
+
+                                if (right in merged_seg_ids and not left in seen_segments):
+                                    # merge the left segment (not sure if used since we sort seg_ids)
+                                    merged.extend(i_seg_map[left])
+                                    merged_seg_ids.append(left)
+                                    seen_segments.append(left)
+                                    used_edge_ptrs.append(i_adj_list_ptr)  # used to ignore edge later
+
+                            i_adj_list_ptr += 1
+                        merged_segments[seg_id] = merged
+
+                    print(f"merged: {merged_segments}\n")
+                    #end stephen-wan
+
+                    writer.writerow({'tid': tid_list[i], 'doc_cp_seq': cp_seq_list[i], 'segments':merged_segments, "segmap":seg_map_list[i], "adj_list":i_adj_list })
 
         # end if
 

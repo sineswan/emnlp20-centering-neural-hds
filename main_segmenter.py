@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-
+import csv
+import json
 ##
 import os
 import argparse
@@ -162,6 +163,22 @@ def exp_model(config):
     config.avg_len_doc = avg_len_doc
 
     config.avg_num_sents = corpus_target.avg_num_sents
+
+    #stephen-wan: adding logging for text sentence segmentations.
+    if config.gen_logs:
+        text_processing_log_name = "log_textpro_" + config.corpus_target.lower() + "_" + str(config.essay_prompt_id_train) + ".text.log"
+
+        documents = corpus_target.train_corpus
+        doc_ids = corpus_target.train_pd
+
+        print(f"doc_ids: {doc_ids}")
+
+        with open(os.path.join(config.session_dir, text_processing_log_name), "w") as log_file:
+            col = ["tid", "num_sents", "sentences"]
+            writer = csv.DictWriter(log_file, fieldnames=col)
+            for i, document in enumerate(documents):
+                writer.writerow({'tid': doc_ids.iloc[i]['essay_id'], 'num_sents': len(document), 'sentences': document})
+
 
     ## Model
     # prepare batch form

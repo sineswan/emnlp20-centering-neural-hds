@@ -305,7 +305,7 @@ class Coh_Model_Cent_Hds(models.model_base.BaseModel):
     def get_disco_seg(self, cur_sent_num, ind_batch, fwrd_repr, cur_batch_repr):
         """ construct hierarchical discourse segments """
 
-        cur_seg_list = []  # current segment
+        cur_seg_list = []  # current segment                                                                    #line 2
         cur_seg_ind = 0
         stack_focus = []  # stack representing focusing
 
@@ -313,10 +313,10 @@ class Coh_Model_Cent_Hds(models.model_base.BaseModel):
         adj_list = []  # adjacency list
         list_root_ds = []  # list up the first level segments
 
-        for sent_i in range(cur_sent_num):
+        for sent_i in range(cur_sent_num):                                                                      #line 3
             cur_pref_repr = fwrd_repr[ind_batch, sent_i, 0, :]
             cur_pref_repr = cur_pref_repr.unsqueeze(0)
-            cur_seg_list = cur_seg_list + [sent_i]
+            cur_seg_list = cur_seg_list + [sent_i]                                                              #line 4
 
             # for the first two sentences, skip them to make a initial stack
             if sent_i  < 2:
@@ -339,7 +339,7 @@ class Coh_Model_Cent_Hds(models.model_base.BaseModel):
 
                 isCont = False
                 # while len(stack_focus) > 0 and stack_focus[-1]!=0:       
-                while len(stack_focus) > 0:                       
+                while len(stack_focus) > 0:                                                                     #line 5
                     # consider average of sentences included in the top segment on the stack
                     top_seg_stack = stack_focus[-1]
                     cur_sent_stack = seg_map[top_seg_stack]
@@ -347,19 +347,19 @@ class Coh_Model_Cent_Hds(models.model_base.BaseModel):
                     prev_back_repr = torch.div(torch.sum(prev_repr, dim=0), len(cur_sent_stack))
 
                     # calcualte the similarity between backward
-                    sim_back_vec = self.sim_cosine_d1(prev_back_repr, cur_back_repr)
+                    sim_back_vec = self.sim_cosine_d1(prev_back_repr, cur_back_repr)                            #line 6
                     sim_avg = torch.div(torch.sum(sim_back_vec, dim=0), sim_back_vec.size(0))
                     
                     # similarity between the current backward and the prefered in the precedding sentence
-                    sim_back_pref = self.sim_cosine_d1(cur_back_repr, cur_pref_repr)
+                    sim_back_pref = self.sim_cosine_d1(cur_back_repr, cur_pref_repr)                            #line 7
                    
                     # if we find a place either continue or retain, then stop the loop
-                    if sim_avg > self.threshold_sim:  # stack the item, and move to the next sentence
+                    if sim_avg > self.threshold_sim:  # stack the item, and move to the next sentence           #line 8: note difference here of avg, not sim_back_vec
                         # if sim_back_fwrd > self.threshold_sim:  ## continuing
-                        if sim_back_pref > self.threshold_sim:  ## continuing
-                            isCont = True
-                        else:  ## retaining
-                            # push the current segment
+                        if sim_back_pref > self.threshold_sim:  ## continuing                                   #line 9: note that pseudocode has alternate names for sim_back_pref
+                            isCont = True                                                                       #line10
+                        else:  ## retaining                                                                     #line11
+                            # push the current segment                                                          #line12
                             isCont = False
                             # update stack and segment map
                             if len(stack_focus) < 1:
@@ -373,28 +373,28 @@ class Coh_Model_Cent_Hds(models.model_base.BaseModel):
                             stack_focus.append(cur_seg_ind)
 
                             cur_seg_ind += 1
-                            cur_seg_list = []
-                        break                            
+                            cur_seg_list = []                                                                   #line13
+                        break                                                                                   #line15
                     # shifting: pop the top item in the stack, and iterate to find the location
-                    else:  
-                        del stack_focus[-1]  # pop the top segment
-                        isCont = False
+                    else:                                                                                       #line16
+                        del stack_focus[-1]  # pop the top segment                                              #line17
+                        isCont = False                                                                          #line18
                 # end while len(stack_focus)
 
-                if ~isCont and len(stack_focus) < 1:
+                if ~isCont and len(stack_focus) < 1:                                                            #line21
                     # when loop is over because pop everyting
-                        stack_focus.append(cur_seg_ind)
+                        stack_focus.append(cur_seg_ind)                                                         #line22
                         seg_map[cur_seg_ind] = cur_seg_list
                         list_root_ds.append(cur_seg_ind)
 
                         cur_seg_ind += 1
-                        cur_seg_list = []
+                        cur_seg_list = []                                                                       #line23
                     # end if
                 # end if
             # end else
         # end for sent_i
 
-        return seg_map, adj_list, list_root_ds
+        return seg_map, adj_list, list_root_ds                                                                  #line26-27
     # end get_disco_seg
 
     def make_tree_stru(self, seg_map, adj_list, list_root_ds):
@@ -463,7 +463,7 @@ class Coh_Model_Cent_Hds(models.model_base.BaseModel):
             ## Parser stage3-1: get structural information
             seg_map, adj_list, list_root_ds = self.get_disco_seg(cur_sent_num, ind_batch, fwrd_repr, cur_batch_repr)
 
-            print(f"seg_map: {seg_map}")
+            # print(f"seg_map: {seg_map}, adj_list: {adj_list}")
 
             ## Parser stage3-2: make a tree structure using the information
             cur_tree = self.make_tree_stru(seg_map, adj_list, list_root_ds)
