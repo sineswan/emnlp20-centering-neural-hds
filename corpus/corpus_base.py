@@ -421,9 +421,17 @@ class CorpusBase(object):
         list_doc_len = []
         entropies = []
         kld = []
+
+        sample = 0
         for cur_doc in data:
             temp = []
             for raw_sent in cur_doc:
+
+                if sample <5:
+                    print(f"Sample[{sample}: {raw_sent}")
+                    sample += 1
+
+
                 id_sent = self._sent2id(raw_sent)  # convert to id
 
                 temp.append(id_sent)
