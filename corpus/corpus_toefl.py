@@ -295,15 +295,15 @@ class CorpusTOEFL(CorpusBase):
 
         # change each sentence to id-parsed
 
-        print(f"Preparing Training: len{len(train_corpus)}")
+        print(f"Preparing Training: len:{len(train_corpus)}")
 
         x_id_train, max_len_doc_train, list_len_train = self._to_id_corpus(train_corpus)
 
-        print(f"Preparing Validation: len{len(valid_corpus)}")
+        print(f"Preparing Validation: len:{len(valid_corpus)}")
 
         x_id_valid, max_len_doc_valid, list_len_valid = self._to_id_corpus(valid_corpus)
 
-        print(f"Preparing Testing: len{len(test_corpus)}")
+        print(f"Preparing Testing: len:{len(test_corpus)}")
 
         x_id_test, max_len_doc_test, list_len_test = self._to_id_corpus(test_corpus)
 
