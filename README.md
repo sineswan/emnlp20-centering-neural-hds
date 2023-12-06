@@ -36,6 +36,55 @@ Glove link: https://nlp.stanford.edu/projects/glove/
 
 XLNet link: https://github.com/huggingface/transformers/
 
+## Using code to generate segmentations:
+(Stephen Wan)
+
+Note: this arcane incantation is just due to my current minimal amendments to the original Joen EMNLP2 codebase where 
+logging of data is just done on the training data subset (and I've also co-opted the Joen's "TOEFL" data schema for re-use)
+
+1. Prepare your data in 3 csv files: train.csv, test.csv, valid.csv
+
+(FYI: scripts for PDTB2 prepared in JCA2023 repository)
+
+```text
+Cols: ['essay_id', 'prompt', 'native_lang', 'essay_score', 'essay']
+essay_id is the doc_id for your data set (e.g., PDTB2 id: section \d\d + filenum \d\d
+prompt: set to 1
+native_lang: set to "ENG" (probably ignored)
+essay_score: set to 1
+essay: the raw text
+```
+
+2. repeat the following step 3 times, where you change the file pointer for the train_fold_0.csv (or simply copy/rename files) 
+to each of the 3 original csv files.
+
+```shell
+
+#activate environment
+conda activate sungho_emnlp20
+
+#change pointer
+ln -s pdtb2_dev.csv train_fold_0.csv
+
+#run code
+python main_segmenter.py --essay_prompt_id_train 1 --essay_prompt_id_test 1 --target_model cent_hds --num_fold 1 --cur_fold 0 --max_epoch 1 --batch_size 1 --gen_log 1
+
+#change pointer
+ln -s pdtb2_dev.csv test_fold_0.csv
+
+# ...rerun python code "main_segmenter.py"
+
+#change pointer
+ln -s pdtb2_dev.csv valid_fold_0.csv
+
+# ...rerun python code "main_segmenter.py"
+```
+
+3. Collect the output files
+
+#go to the logs directory and inspect the 3 log subdirectories created as part of the three executions of main_segmenter.py
+#concatenate the results (manually) into a single file  
+
 ## Run Models
 #### Basic run
 A basic run is performed by "main.py" with configuration options by providing in terminal or modifying "build_config.py" file.
