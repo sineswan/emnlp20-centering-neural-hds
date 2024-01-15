@@ -44,7 +44,7 @@ logging of data is just done on the training data subset (and I've also co-opted
 
 1. Prepare your data in 3 csv files: train.csv, test.csv, valid.csv
 
-(FYI: scripts for PDTB2 prepared in JCA2023 repository)
+(FYI: scripts for PDTB2 prepared in https://github.com/sineswan/ConnRel/blob/main/data_wrapper/create_csv_version_pdtb.py)
 
 ```text
 Cols: ['essay_id', 'prompt', 'native_lang', 'essay_score', 'essay']
@@ -63,27 +63,51 @@ to each of the 3 original csv files.
 #activate environment
 conda activate sungho_emnlp20
 
-#change pointer
-ln -s pdtb2_dev.csv train_fold_0.csv
+#change to the data directory 
+cd <proj_dir>/dataset/toefl/cv
+
+#copy the CSV files to here
+cp <csv_dir>/*.csv .
+
+#change pointer so that train set is pointed to by the train_fold_0.csv file
+ln -s train.csv train_fold_0.csv
 
 #run code
+#change back to the main directory
 python main_segmenter.py --essay_prompt_id_train 1 --essay_prompt_id_test 1 --target_model cent_hds --num_fold 1 --cur_fold 0 --max_epoch 1 --batch_size 1 --gen_log 1
 
-#change pointer
-ln -s pdtb2_dev.csv test_fold_0.csv
+#change pointer so that dev set is pointed to by the train_fold_0.csv file
+ln -s dev.csv train_fold_0.csv
 
 # ...rerun python code "main_segmenter.py"
 
-#change pointer
-ln -s pdtb2_dev.csv valid_fold_0.csv
+#change pointer so that test set is pointed to by the train_fold_0.csv file
+ln -s text.csv train_fold_0.csv
 
 # ...rerun python code "main_segmenter.py"
 ```
 
 3. Collect the output files
 
-#go to the logs directory and inspect the 3 log subdirectories created as part of the three executions of main_segmenter.py
+Go to the logs directory and inspect the 3 log subdirectories created as part of the three executions of main_segmenter.py
 #concatenate the results (manually) into a single file  
+
+```shell
+
+rm segments.dat
+cat <dir1>/log_cp_toefl_1.log >> segments.dat   #where this run was for training data
+cat <dir2>/log_cp_toefl_1.log >> segments.dat   #where this run was for validation data
+cat <dir3>/log_cp_toefl_1.log >> segments.dat   #where this run was for testing data
+
+
+rm sentences.dat
+cat <dir1>/log_textpro_toefl_1.text.log >> sentences.dat   #where this run was for training data
+cat <dir2>/log_textpro_toefl_1.text.log >> sentences.dat   #where this run was for validation data
+cat <dir3>/log_textpro_toefl_1.text.log >> sentences.dat   #where this run was for testing data
+
+
+```
+e.g. 
 
 ## Run Models
 #### Basic run
